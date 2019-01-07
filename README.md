@@ -9,4 +9,4 @@ Details about descriptions and requirements can be found at [link](https://githu
 python -m htttp.server 8000
 ```
 - open browser with address `http://localhost:8000`
-- browse the files under the current repo and open it.
+- browse the files under the current repo and view them.
