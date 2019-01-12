@@ -58,11 +58,10 @@
           gridSize = Math.floor(width / 20),
           legendElementWidth = gridSize*2,
           buckets = 9,
-          // colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"]
-          // alternatively colorbrewer.YlGnBu[9]
           colors = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
+          // alternatively colorbrewer.YlGnBu[9]
           ;
-          // datasets = ["data.tsv", "data2.tsv"];
+    var count = 0;
     
     // initalize SVG
     var svg = d3.select("#chart").append("svg")
@@ -161,7 +160,7 @@
             // use tag control visualization
             // tag=1: max_temperature
             // tag=0: min_temperatture
-            if (tag==1){
+            if (tag==1 && count==0){
             for(i=0;i<months.length;i++){
               temp.enter().append("rect")
                 .attr("x", function(d) { return (d.key - d3.min(Mydata).key) * gridSize; })
@@ -181,10 +180,14 @@
                       .style("fill", function(d) { return colorScale(d.values[i].values.max); });
                 temp.exit().remove();
             }
-            }else{
+            }else if(count>0&&tag==0){
               var temp = svg.selectAll('rect');
               temp.transition().duration(1000)
                   .style("fill", function(d) { return colorScale(d3.select(this).attr("min_value")); });
+            }else if(count>0&&tag==1){
+              var temp = svg.selectAll('rect');
+              temp.transition().duration(1000)
+                  .style("fill", function(d) { return colorScale(d3.select(this).attr("max_value")); });
             }
             // add interactive textbox
             temp = svg.selectAll("rect")
@@ -232,8 +235,11 @@
         HeatMap('temperature_daily.csv',1);
         body.selectAll('input').on('change',function(){
           var val = this.value;
+          count = count+1;
           if(val=='min_temperature'){
             HeatMap('temperature_daily.csv',0);
+          }else{
+            HeatMap('temperature_daily.csv',1);
           }
         });
         //get year
