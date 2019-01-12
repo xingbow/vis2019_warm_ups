@@ -1,0 +1,73 @@
+html,body,#wrapper {
+	width: 80%;
+	height: 80%;
+	margin: 0px;
+	padding: 5px 5px 5px 5px;
+     padding-top: 20px;
+}
+ 
+.chart {
+	font-family: Arial, sans-serif;
+	font-size: 12px;
+	
+}
+ 
+.axis path,.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+ 
+.bar {
+	fill: #33b5e5;
+}
+ 
+.bar-failed {
+	fill: #CC0000;
+}
+ 
+.bar-running {
+	fill: #669900;
+}
+ 
+.bar-succeeded {
+	fill: #33b5e5;
+}
+ 
+.bar-killed {
+	fill: #ffbb33; 
+}
+ 
+#header1 {
+	position: center;
+	top: 0;
+	left: 10px;
+	z-index: 10;
+	 
+}
+#header2 {
+	position: center;
+	top: 0;
+	left: 10px;
+	z-index: 10;
+	 
+}
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+.background {
+  fill: #eee;
+}
+
+line {
+  stroke: #fff;
+}
+
+text.active {
+  fill: red;
+}
