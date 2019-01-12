@@ -1,4 +1,3 @@
-
 var margin = {top: 80, right: 180, bottom: 100, left: 80},
     width = 750,
     height = 750;
@@ -14,12 +13,48 @@ var svg = d3.select("#header2").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.json("miserables.json", function(miserables) {
+d3.json("HKUST_coauthor_graph.json", function(graph) {
   var matrix = [],
-      nodes = miserables.nodes,
-      links = miserables.links,
-      n = nodes.length,
-      sampleCategoricalData =[];
+      nodes ,
+      links,
+      n ;
+	  var all_nodes = graph.nodes;
+    var all_links = graph.edges;
+    var cse_nodes=[], cse_links=[],cse_id=[];
+    all_nodes.forEach(function(e){
+        if(e.dept=='CSE'){
+        cse_nodes.push(e);
+        cse_id.push(e.id)
+        }
+    });
+    // console.log(cse_nodes);
+
+    all_links.forEach(
+        function(e){
+            var source = cse_id.indexOf(e.source);
+            var target = cse_id.indexOf(e.target);
+            if((source!=-1)&&(target!=-1)){
+                e.source = source;
+                e.target = target;
+                cse_links.push(e);
+            }
+        }
+    );
+    // console.log(cse_links);
+    var i,count;
+    for(i=0;i<cse_nodes.length;i++){
+        count = 0;
+        cse_links.forEach(function(e){
+            if(e.source==i ||e.target==i){
+                count = count+1;
+            }
+        });
+        cse_nodes[i].count = count;
+    }
+	nodes = cse_nodes;
+	links = cse_links;
+	n = cse_nodes.length;
+	console.log(nodes);
 
   // Compute index per node.
   nodes.forEach(function(node, i) {
@@ -30,32 +65,23 @@ d3.json("miserables.json", function(miserables) {
 
   // Convert links to matrix; count character occurrences.
   links.forEach(function(link) {
-    matrix[link.source][link.target].z += 4;
-    matrix[link.target][link.source].z += 4;
+    matrix[link.source][link.target].z += link.publications.length;
+    matrix[link.target][link.source].z += link.publications.length;
     // matrix[link.source][link.source].z += 4;
-    // matrix[link.target][link.target].z += 4;
+	// matrix[link.target][link.target].z += 4;
+	console.log(link)
     nodes[link.source].count++;
     nodes[link.target].count++;
-    sampleCategoricalData[nodes[link.source].group] = nodes[link.source].region;
+    // sampleCategoricalData[nodes[link.source].group] = nodes[link.source].region;
   });
-
-sampleCategoricalData[0]="Different Region";
-
-  verticalLegend = d3.svg.legend().labelFormat("none").cellPadding(5).orientation("vertical").units("Region by Color").cellWidth(25).cellHeight(18).inputScale(c,sampleCategoricalData).cellStepping(10);
-
-  d3.selectAll("svg")
-.append("g").attr("transform", "translate("+(width+130)+",250)").attr("class", "legend").call(verticalLegend);
-
-  
-
 
   // Precompute the orders.
   var orders = {
-    name: d3.range(n).sort(function(a, b) { return d3.ascending(nodes[a].name, nodes[b].name); }),
+    name: d3.range(n).sort(function(a, b) { return d3.ascending(nodes[a].fullname, nodes[b].fullname); }),
    count: d3.range(n).sort(function(a, b) { return nodes[b].count - nodes[a].count; }),
-   group: d3.range(n).sort(function(a, b) { return nodes[a].group - nodes[b].group; })
+   group: d3.range(n).sort(function(a, b) { return nodes[a].id - nodes[b].id; })
   };
-
+  console.log(orders);
   // The default sort order.
   x.domain(orders.name);
 
@@ -79,7 +105,7 @@ sampleCategoricalData[0]="Different Region";
       .attr("y", x.rangeBand() / 2)
       .attr("dy", ".32em")
       .attr("text-anchor", "end")
-      .text(function(d, i) { return nodes[i].name; });
+      .text(function(d, i) { return nodes[i].fullname; });
 
   var column = svg.selectAll(".column")
       .data(matrix)
@@ -95,16 +121,18 @@ sampleCategoricalData[0]="Different Region";
       .attr("y", x.rangeBand() / 2)
       .attr("dy", ".32em")
       .attr("text-anchor", "start")
-      .text(function(d, i) { return nodes[i].name; });
+      .text(function(d, i) { return nodes[i].fullname; });
 
   function row(row) {
     var cell = d3.select(this).selectAll(".cell")
         .data(row.filter(function(d) { return d.z; }))
-      .enter().append("rect")
+      	.enter().append("rect")
         .attr("class", "cell")
         .attr("x", function(d) { return x(d.x); })
         .attr("width", x.rangeBand())
         .attr("height", x.rangeBand())
+        .attr("name1",function(d){ return nodes[d.x].fullname; })
+        .attr("name2",function(d){ return nodes[d.y].fullname; })
         .style("fill-opacity", function(d) { return z(d.z); })
         .style("fill", function(d) { return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : c(0); })
         .on("mouseover", mouseover)
@@ -113,15 +141,33 @@ sampleCategoricalData[0]="Different Region";
 
   
   function mouseover(p) {
+    // console.log(nodes[p.y].fullname);
+    d3.select(this).style('fill',c(1));
     d3.selectAll(".row text").classed("active", function(d, i) { return i == p.y; });
     d3.selectAll(".column text").classed("active", function(d, i) { return i == p.x; });
-     
+     // select node in force-link diagram
+    d3.selectAll('circle')
+            .style('stroke-width',function(d){
+                if(d.fullname==nodes[p.y].fullname||d.fullname==nodes[p.x].fullname){
+                    return 2.5;
+                }
+            })
+            .style("stroke", function(d){
+                if(d.fullname==nodes[p.y].fullname||d.fullname==nodes[p.x].fullname){
+                    return 'red';
+                }
+            });
   }
 
   function mouseout() {
+    d3.select(this).style('fill',c(0))
     d3.selectAll("text").classed("active", false);
      d3.selectAll("rect").attr("width",x.rangeBand());
      d3.selectAll("rect").attr("height",x.rangeBand());
+     // select node in force-link diagram
+    d3.selectAll('circle')
+            .style('stroke-width',1.5)
+            .style("stroke",'white');
   }
 
   d3.select("#order").on("change", function() {
@@ -151,4 +197,3 @@ sampleCategoricalData[0]="Different Region";
     d3.select("#order").property("selectedIndex", 2).node().focus();
   }, 2000);
 });
-
