@@ -1,4 +1,4 @@
-**### level 3**
+### level 3
 
 In this level, HKUST CSE coauthor graph is constructed and visualized. Node-link diagram and adjacency matrix are applied and interactions between them are added, as well as some animations (sorting, grouping, etc).
 
