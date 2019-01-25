@@ -25,3 +25,4 @@ In this level, HKUST CSE coauthor graph is constructed and visualized. Node-link
 
   ![level3-node-matrix](../figures/level3-node-matrix.png)
 
+(--- fix author issue ---)
